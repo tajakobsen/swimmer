@@ -11,7 +11,10 @@ bin/
 tmp/
 test-result
 server.pid
+.gradle
+.idea
 *.iml
+build
 *.eml
 /dist/
 .cache
