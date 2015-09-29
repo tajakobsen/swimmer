@@ -15,19 +15,19 @@ import java.util.function.BiFunction;
  * Creates a function that consumes a Parent object, invokes a url found there,
  * parses child xml, adds the result to the parent object, and returns a Promise of
  * the parent object.
- * @param <T> Parent class
- * @param <S> Child class
+ * @param <ParentType> Parent class
+ * @param <ChildType> Child class
  */
-public class SingleCrawler<T, S> implements Crawler<T> {
-    private final BiFunction<WSClient, T, Promise<WSResponse>> response;
-    private final ObjectParser<S> parser;
-    private final BiConsumer<T, S> combiner;
+public class SingleCrawler<ParentType, ChildType> implements Crawler<ParentType> {
+    private final BiFunction<WSClient, ParentType, Promise<WSResponse>> response;
+    private final ObjectParser<ChildType> parser;
+    private final BiConsumer<ParentType, ChildType> combiner;
     private final WSClient client;
 
     @Inject
-    public SingleCrawler(@Assisted BiFunction<WSClient, T, Promise<WSResponse>> response,
-                         @Assisted ObjectParser<S> parser,
-                         @Assisted BiConsumer<T, S> combiner,
+    public SingleCrawler(@Assisted BiFunction<WSClient, ParentType, Promise<WSResponse>> response,
+                         @Assisted ObjectParser<ChildType> parser,
+                         @Assisted BiConsumer<ParentType, ChildType> combiner,
                          @CrawlerClient WSClient client) {
         this.response = response;
         this.parser = parser;
@@ -35,7 +35,7 @@ public class SingleCrawler<T, S> implements Crawler<T> {
         this.client = client;
     }
 
-    public Promise<T> apply(T parent){
+    public Promise<ParentType> apply(ParentType parent){
         return response.apply(client, parent)
                 .map(WSResponse::asXml)
                 .map(parser::apply)
@@ -43,9 +43,5 @@ public class SingleCrawler<T, S> implements Crawler<T> {
                     combiner.accept(parent, child); // adds child to parent
                     return parent;
                 });
-    }
-
-    public Crawler<T> identity() {
-        return Promise::pure;
     }
 }

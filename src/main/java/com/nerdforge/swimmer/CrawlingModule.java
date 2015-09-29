@@ -1,11 +1,9 @@
 package com.nerdforge.swimmer;
 
 import com.google.inject.PrivateModule;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.nerdforge.swimmer.crawlers.SingleCrawler;
 import com.nerdforge.swimmer.factory.CrawlingFactory;
-import com.nerdforge.swimmer.factory.SingleCrawlerFactory;
-import com.nerdforge.unxml.UnXmlModule;
+import com.nerdforge.swimmer.util.PlayPromiseHelper;
+import com.nerdforge.swimmer.util.PromiseHelper;
 import play.libs.ws.WSClient;
 
 public class CrawlingModule extends PrivateModule {
@@ -17,17 +15,12 @@ public class CrawlingModule extends PrivateModule {
 
     @Override
     protected void configure() {
-        install(new UnXmlModule());
-
         bind(WSClient.class).annotatedWith(CrawlerClient.class).toInstance(client);
-
-        // Generate Factories
-        install(new FactoryModuleBuilder()
-                .implement(SingleCrawler.class, SingleCrawler.class)
-                .build(SingleCrawlerFactory.class));
 
         bind(CrawlingFactory.class);
         expose(CrawlingFactory.class);
+
+        bind(PromiseHelper.class).to(PlayPromiseHelper.class);
 
         // utility class
         bind(Crawling.class);
