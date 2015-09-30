@@ -28,8 +28,7 @@ public class Crawling {
     }
 
     public <ParentType, ChildType> Crawler<ParentType> create(
-            BiFunction<WSClient, ParentType,
-            Promise<WSResponse>> response,
+            BiFunction<WSClient, ParentType, Promise<WSResponse>> response,
             ObjectParser<ChildType> parser,
             BiConsumer<ParentType, ChildType> combiner){
         return new SingleCrawler<>(response, parser, combiner, client);

@@ -17,10 +17,6 @@ public class CrawlingFactory {
         this.crawling = crawling;
     }
 
-    /**
-     * Returns an instance of the factory
-     * @return An instance of this factory
-     */
     public static CrawlingFactory getInstance(WSClient client){
         Injector injector = Guice.createInjector(new CrawlingModule(client));
         return injector.getInstance(CrawlingFactory.class);

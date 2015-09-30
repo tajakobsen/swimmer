@@ -15,9 +15,10 @@ import com.nerdforge.unxml.factory.ParsingFactory;
 import com.nerdforge.unxml.parsers.ObjectParser;
 import org.junit.Before;
 import org.junit.Test;
+import play.libs.F.Promise;
 import play.libs.ws.WSClient;
-import javax.inject.Inject;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class ListCrawlerTest {
     private Crawling crawling;
 
     @Bind
-    private PromiseHelper promiseHelper = new TestPromiseHelper();
+    private PromiseHelper helper = new TestPromiseHelper();
 
     @Before
     public void before(){
@@ -54,7 +55,9 @@ public class ListCrawlerTest {
         Crawler<List<Foo>> crawler = crawling.list(crawling.create(foo -> foo.barUrl, parser, (foo, bar) -> foo.bar = bar));
 
         // apply crawler
-        List<Foo> result = crawler.apply(fooList).get(1000L);
+        List<Foo> result = Promise.pure(fooList)
+                .flatMap(crawler::apply) // Use flatMap with the crawler
+                .get(1000L);
 
         assertThat(result.get(0).bar.id).isEqualTo("0");
         assertThat(result.get(1).bar.id).isEqualTo("1");

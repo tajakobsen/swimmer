@@ -1,12 +1,35 @@
-group 'com.nerdforge'
-version '0.1-SNAPSHOT'
-
 apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
+apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+archivesBaseName = "swimmer"
+group 'com.nerdforge'
+version '0.2-SNAPSHOT'
+
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -19,4 +42,75 @@ dependencies {
     testCompile group: 'com.google.inject.extensions', name: 'guice-testlib', version: '4.0'
     testCompile group: 'org.easytesting', name: 'fest-assert', version: '1.4'
     testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+    }
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    required { version.toString().contains("-SNAPSHOT") && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: System.getenv('ossrhUsername'), password: System.getenv('ossrhPassword'))
+            }
+
+            pom.project {
+                name 'swimmer'
+                packaging 'jar'
+                description 'An XML crawler for Play.'
+                url 'https://github.com/tajakobsen/swimmer'
+
+                scm {
+                    connection 'scm:git:https://github.com/tajakobsen/swimmer.git'
+                    developerConnection 'scm:git:https://github.com/tajakobsen/swimmer.git'
+                    url 'https://github.com/tajakobsen/swimmer'
+                }
+
+                licenses {
+                    license {
+                        name 'Apache License'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'tajakobsen'
+                        name 'Tom Arild Jakobsen'
+                        email 'tajakobsen@gmail.com'
+                    }
+                }
+            }
+        }
+    }
 }
